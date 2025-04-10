@@ -64,3 +64,22 @@ async function updateUser(req, res) {
       .json({ erro: "Erro ao atualizar usuário", detalhes: err.message });
   }
 }
+
+async function deleteUser(req, res) {
+  const userId = req.params.id;
+
+  try {
+    const deletado = await User.destroy({ where: { id: userId } });
+
+    if (deletado) {
+      return res.status(200).json({ mensagem: "Usuário excluído com sucesso" });
+    } else {
+      return res.status(404).json({ erro: "Usuário não encontrado" });
+    }
+  } catch (err) {
+    return res.status(500).json({
+      erro: "Erro ao excluir usuário",
+      detalhes: err.message
+    });
+  }
+}
