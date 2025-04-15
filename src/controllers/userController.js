@@ -1,16 +1,22 @@
 const User = require("../models/user");
+const JoiValidator = require("../validations/userValidator");
+const Logger = require("../logger/logger");
 
 async function createUser(req, res) {
   const { nome, email, senha } = req.body;
+  const { error } = JoiValidator.createUserSchema.validate(req.body);
 
-  if (!nome || !email || !senha) {
-    return res.status(400).json({ mensagem: "Campos obrigatórios ausentes." });
+  if (error) {
+    return res.status(400).json(error.details[0].message);
   }
 
   try {
     const user = await User.create({ nome, email, senha });
+    Logger.info(`Usuário criado: ${user.id}`);
+
     return res.status(201).json(user);
   } catch (err) {
+    Logger.error(`Erro ao criar usuário: ${err.message}`);
     return res
       .status(500)
       .json({ erro: "Erro ao criar usuário", detalhes: err.message });
@@ -47,6 +53,11 @@ async function getUserById(req, res) {
 async function updateUser(req, res) {
   const userId = req.params.id;
   const dadosAtualizados = req.body;
+  const { error } = JoiValidator.updateUserSchema.validate(req.body);
+
+  if (error) {
+    return res.status(400).json(error.details[0].message);
+  }
 
   try {
     const [dadosAlterados] = await User.update(dadosAtualizados, {
@@ -79,7 +90,15 @@ async function deleteUser(req, res) {
   } catch (err) {
     return res.status(500).json({
       erro: "Erro ao excluir usuário",
-      detalhes: err.message
+      detalhes: err.message,
     });
   }
 }
+
+module.exports = {
+  createUser,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+};
